@@ -79,7 +79,7 @@ def limpiar_datos(df):
         print(f"Columna PAIS_CODIGO creada")
         
         # Arreglo para convertir columnas numéricas 
-        columnas_numericas = ["CENSO AJUSTADO", "RRAA_REGULAR", "RRAA_IRREGULAR", "RRAA_TOTAL", "ESTIMACION"]
+        columnas_numericas = ["CENSO AJUSTADO", "RRAA_REGULAR", "RRAA_IRREGULAR", "RRAA_TOTAL", "ESTIMACION", "INFLACION", "CRECIMIENTO_PIB", "DESEMPLEO"]
         
         # Convertir a numérico (por si hay strings mezclados)
         for col in columnas_numericas:
@@ -87,16 +87,19 @@ def limpiar_datos(df):
         
         print(f"Columnas numéricas convertidas y NaN rellenados con 0")
 
-        # Verificar valores negativos (solo en columnas numéricas)
-        negativos = (df[columnas_numericas] < 0).any(axis=1)
+        # Verificar valores negativos (solo en columnas donde no deberían existir)
+        # Excluir CRECIMIENTO_PIB porque puede ser negativo (recesión económica)
+        columnas_sin_negativos = ["CENSO AJUSTADO", "RRAA_REGULAR", "RRAA_IRREGULAR", "RRAA_TOTAL", "ESTIMACION", "INFLACION", "DESEMPLEO"]
+        negativos = (df[columnas_sin_negativos] < 0).any(axis=1)
         
         if negativos.any():
             print(f"\nExisten {negativos.sum()} filas con valores negativos:")
-            for col in columnas_numericas: 
+            for col in columnas_sin_negativos: 
                 num_negativos = (df[col] < 0).sum()
                 if num_negativos > 0:
                     print(f"  - {col}: {num_negativos} valores negativos")
             
-            # Convertir todos los valores negativos a su valor absoluto
-            df[columnas_numericas] = df[columnas_numericas].abs()
+            # Convertir todos los valores negativos a su valor absoluto (excepto CRECIMIENTO_PIB)
+            df[columnas_sin_negativos] = df[columnas_sin_negativos].abs()
             print(f"\nValores negativos convertidos a positivos (valor absoluto)")
+            print(f"Nota: CRECIMIENTO_PIB puede contener valores negativos (recesión económica)")
